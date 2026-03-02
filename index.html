@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Algorytm Nussinov — Predykcja struktury RNA</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=DM+Mono:wght@400;500&family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<!-- Grain overlay for texture -->
+<div class="grain" aria-hidden="true"></div>
+
+<!-- ===== Ekran poczatkowy ===== -->
+<section id="input-screen">
+    <div class="input-card">
+        <div class="card-glow" aria-hidden="true"></div>
+
+        <div class="title-block">
+            <p class="eyebrow">Bioinformatyka &middot; Programowanie dynamiczne</p>
+            <h1>Nussinov</h1>
+            <p class="subtitle">Predykcja struktury drugorzędowej RNA</p>
+        </div>
+
+        <!-- Format + sekwencja -->
+        <div class="field">
+            <div class="field-header">
+                <label for="seq-input">Sekwencja</label>
+                <div class="format-toggle">
+                    <button class="format-btn active" data-format="plain">Plain text</button>
+                    <button class="format-btn" data-format="fasta">FASTA</button>
+                </div>
+            </div>
+            <input type="text" id="seq-input" class="seq-input-plain" placeholder="np. GGGAAAUCC" spellcheck="false" autocomplete="off">
+            <textarea id="seq-input-fasta" class="seq-input-fasta hidden" rows="4" placeholder=">nazwa_sekwencji&#10;GGGAAAUCC" spellcheck="false"></textarea>
+            <div id="seq-messages">
+                <span id="seq-error" class="msg msg-error"></span>
+                <span id="seq-warning" class="msg msg-warning"></span>
+            </div>
+        </div>
+
+        <!-- Przyklady -->
+        <div class="field">
+            <label>Przykłady</label>
+            <div id="example-chips" class="chip-row"></div>
+        </div>
+
+        <!-- Parametry -->
+        <div class="params-row">
+            <div class="field">
+                <label for="loop-slider">Min. odległość pętli: <strong id="loop-value">1</strong></label>
+                <input type="range" id="loop-slider" min="1" max="4" value="1">
+            </div>
+            <div class="field checkbox-field">
+                <label>
+                    <input type="checkbox" id="wobble-check">
+                    <span class="check-box"></span>
+                    Pary wobble (G–U)
+                </label>
+            </div>
+        </div>
+
+        <!-- Wybor trybu + przycisk -->
+        <div class="action-row">
+            <div class="mode-selector">
+                <button class="mode-btn active" data-mode="educational">
+                    <span class="mode-indicator"></span>
+                    <div class="mode-text">
+                        <span class="mode-label">Tryb edukacyjny</span>
+                        <span class="mode-desc">Krok po kroku z kontrolkami</span>
+                    </div>
+                </button>
+                <button class="mode-btn" data-mode="instant">
+                    <span class="mode-indicator"></span>
+                    <div class="mode-text">
+                        <span class="mode-label">Oblicz od razu</span>
+                        <span class="mode-desc">Pokaż gotowy wynik</span>
+                    </div>
+                </button>
+            </div>
+            <button id="btn-compute" disabled>
+                <span>Oblicz</span>
+                <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M3 8h10M9 4l4 4-4 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            </button>
+        </div>
+    </div>
+</section>
+
+<!-- ===== Sekcja wynikow (ukryta domyslnie) ===== -->
+<section id="results-screen" class="hidden">
+
+    <!-- Pasek info + powrot -->
+    <div id="results-header">
+        <button id="btn-back" title="Powrót do ekranu startowego">
+            <svg width="14" height="14" viewBox="0 0 16 16" fill="none"><path d="M10 12L6 8l4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            Nowa sekwencja
+        </button>
+        <span id="result-seq-label" class="result-seq-label"></span>
+    </div>
+
+    <!-- Kontrolki edukacyjne (ukryte w trybie instant) -->
+    <div id="edu-controls" class="hidden">
+        <div class="edu-controls-inner">
+            <div class="edu-buttons">
+                <button id="btn-reset" title="Reset">
+                    <svg width="14" height="14" viewBox="0 0 16 16" fill="none"><path d="M2 2v5h5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/><path d="M2.5 7A6 6 0 1 1 3 10" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+                    Reset
+                </button>
+                <button id="btn-prev" title="Poprzedni krok (←)">
+                    <svg width="14" height="14" viewBox="0 0 16 16" fill="none"><path d="M10 12L6 8l4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                    Wstecz
+                </button>
+                <button id="btn-play" title="Odtwarzaj" class="btn-accent">
+                    <svg width="14" height="14" viewBox="0 0 16 16" fill="none"><path d="M4 3l9 5-9 5V3z" fill="currentColor"/></svg>
+                    Odtwarzaj
+                </button>
+                <button id="btn-pause" title="Pauza" class="btn-accent hidden">
+                    <svg width="14" height="14" viewBox="0 0 16 16" fill="none"><rect x="3" y="2" width="3.5" height="12" rx="1" fill="currentColor"/><rect x="9.5" y="2" width="3.5" height="12" rx="1" fill="currentColor"/></svg>
+                    Pauza
+                </button>
+                <button id="btn-next" title="Następny krok (→)">
+                    Dalej
+                    <svg width="14" height="14" viewBox="0 0 16 16" fill="none"><path d="M6 4l4 4-4 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                </button>
+                <button id="btn-skip" title="Przejdź do traceback">
+                    Traceback
+                    <svg width="14" height="14" viewBox="0 0 16 16" fill="none"><path d="M4 4l4 4-4 4M8 4l4 4-4 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                </button>
+            </div>
+            <div class="edu-info">
+                <label for="speed-slider">Prędkość</label>
+                <input type="range" id="speed-slider" min="50" max="1000" value="400" step="50">
+                <span id="step-label" class="step-label">Krok 0/0</span>
+            </div>
+        </div>
+        <div id="step-description" class="step-desc"></div>
+    </div>
+
+    <!-- Wizualizacje -->
+    <div id="viz-panel">
+        <section id="matrix-container" class="viz-box">
+            <h2>Macierz DP</h2>
+            <div id="matrix-svg-wrap">
+                <svg id="matrix-svg"></svg>
+            </div>
+        </section>
+
+        <section id="arc-container" class="viz-box">
+            <h2>Diagram łukowy</h2>
+            <div id="arc-svg-wrap">
+                <svg id="arc-svg"></svg>
+            </div>
+            <div id="dot-bracket"></div>
+        </section>
+    </div>
+</section>
+
+<!-- ===== Overlay szczegoly komorki ===== -->
+<div id="cell-detail-overlay" class="overlay hidden">
+    <div class="overlay-content">
+        <button id="overlay-close" class="overlay-close">&times;</button>
+        <h3>Szczegóły komórki</h3>
+        <div id="cell-detail-body"></div>
+    </div>
+</div>
+
+<!-- Skrypty — kolejnosc wazna -->
+<script src="js/utils.js"></script>
+<script src="js/nussinov.js"></script>
+<script src="js/matrix-view.js"></script>
+<script src="js/arc-view.js"></script>
+<script src="js/controller.js"></script>
+
+</body>
+</html>
