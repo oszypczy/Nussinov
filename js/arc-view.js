@@ -15,6 +15,8 @@ window.ArcView = class ArcView {
         this.marginX = 20;
         this.baseY = 0;       // linia bazowa nukleotydow
         this.onArcHover = null;  // callback(i, j | null)
+        this.onArcClick = null;  // callback(i, j, selected)
+        this._selectedArc = null; // { i, j } or null
     }
 
     /**
@@ -36,8 +38,8 @@ window.ArcView = class ArcView {
         const h = maxArcH + 50;
         this.baseY = h - 20;
 
-        this.svg.setAttribute('width', w);
-        this.svg.setAttribute('height', h);
+        this._vbW = w;
+        this._vbH = h;
         this.svg.setAttribute('viewBox', `0 0 ${w} ${h}`);
 
         // nukleotydy na osi X
@@ -67,6 +69,27 @@ window.ArcView = class ArcView {
             idx.textContent = i;
             this.svg.appendChild(idx);
         }
+
+        this._fitToContainer();
+        this._observeResize();
+    }
+
+    _fitToContainer() {
+        const wrap = this.svg.parentElement;
+        if (!wrap || !this._vbW) return;
+        const { width: cw, height: ch } = wrap.getBoundingClientRect();
+        if (cw === 0 || ch === 0) return;
+        const scale = Math.min(cw / this._vbW, ch / this._vbH);
+        this.svg.setAttribute('width', this._vbW * scale);
+        this.svg.setAttribute('height', this._vbH * scale);
+    }
+
+    _observeResize() {
+        if (this._ro) this._ro.disconnect();
+        const wrap = this.svg.parentElement;
+        if (!wrap) return;
+        this._ro = new ResizeObserver(() => this._fitToContainer());
+        this._ro.observe(wrap);
     }
 
     /**
@@ -104,15 +127,29 @@ window.ArcView = class ArcView {
             const pt = RNAUtils.pairType(sequence[i], sequence[j]);
             path.setAttribute('stroke', colorMap[pt] || '#888');
 
-            // hover
             const ii = i, jj = j;
+
+            // hover (tymczasowe podswietlenie)
             path.addEventListener('mouseenter', () => {
-                path.classList.add('hover-highlight');
+                if (!this._isSelected(ii, jj)) {
+                    path.classList.add('hover-highlight');
+                }
                 if (this.onArcHover) this.onArcHover(ii, jj);
             });
             path.addEventListener('mouseleave', () => {
                 path.classList.remove('hover-highlight');
                 if (this.onArcHover) this.onArcHover(null, null);
+            });
+
+            // click (trwaly toggle)
+            path.addEventListener('click', () => {
+                const wasSelected = this._isSelected(ii, jj);
+                this.clearSelection();
+                if (!wasSelected) {
+                    this._selectedArc = { i: ii, j: jj };
+                    path.classList.add('arc-selected');
+                }
+                if (this.onArcClick) this.onArcClick(ii, jj, !wasSelected);
             });
 
             // wstaw przed nukleotydami (pod tekstem)
@@ -170,6 +207,17 @@ window.ArcView = class ArcView {
         for (const arc of this.arcs) {
             arc.path.classList.remove('hover-highlight');
         }
+    }
+
+    clearSelection() {
+        this._selectedArc = null;
+        for (const arc of this.arcs) {
+            arc.path.classList.remove('arc-selected');
+        }
+    }
+
+    _isSelected(i, j) {
+        return this._selectedArc && this._selectedArc.i === i && this._selectedArc.j === j;
     }
 
     /** Wspolrzedna X nukleotydu na pozycji i. */

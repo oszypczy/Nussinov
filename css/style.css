@@ -683,10 +683,11 @@ input[type="range"]::-moz-range-thumb {
 
 #matrix-svg-wrap, #arc-svg-wrap {
     flex: 1;
-    overflow: auto;
+    overflow: hidden;
     display: flex;
-    align-items: flex-start;
+    align-items: center;
     justify-content: center;
+    min-height: 0;
 }
 
 #matrix-svg, #arc-svg { display: block; }
@@ -771,6 +772,12 @@ input[type="range"]::-moz-range-thumb {
     stroke-width: 3.5;
     opacity: 1;
     filter: drop-shadow(0 0 8px currentColor);
+}
+
+.arc-path.arc-selected {
+    stroke-width: 3.5;
+    opacity: 1;
+    filter: drop-shadow(0 0 10px currentColor);
 }
 
 .nuc-text {

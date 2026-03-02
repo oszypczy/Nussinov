@@ -34,8 +34,8 @@ window.MatrixView = class MatrixView {
         const w = hs + this.n * cs;
         const h = hs + this.n * cs;
 
-        this.svg.setAttribute('width', w);
-        this.svg.setAttribute('height', h);
+        this._vbW = w;
+        this._vbH = h;
         this.svg.setAttribute('viewBox', `0 0 ${w} ${h}`);
 
         // naglowki kolumn (gora)
@@ -93,6 +93,27 @@ window.MatrixView = class MatrixView {
                 });
             }
         }
+
+        this._fitToContainer();
+        this._observeResize();
+    }
+
+    _fitToContainer() {
+        const wrap = this.svg.parentElement;
+        if (!wrap || !this._vbW) return;
+        const { width: cw, height: ch } = wrap.getBoundingClientRect();
+        if (cw === 0 || ch === 0) return;
+        const scale = Math.min(cw / this._vbW, ch / this._vbH);
+        this.svg.setAttribute('width', this._vbW * scale);
+        this.svg.setAttribute('height', this._vbH * scale);
+    }
+
+    _observeResize() {
+        if (this._ro) this._ro.disconnect();
+        const wrap = this.svg.parentElement;
+        if (!wrap) return;
+        this._ro = new ResizeObserver(() => this._fitToContainer());
+        this._ro.observe(wrap);
     }
 
     /**
@@ -168,12 +189,30 @@ window.MatrixView = class MatrixView {
     }
 
     /**
-     * Podswietla pare (i,j) w macierzy — dla interakcji z arc-view.
+     * Podswietla pare (i,j) w macierzy — tymczasowo przy hover na luk.
      */
     highlightPair(i, j) {
         this.clearHoverHighlights();
         if (this.cells[i] && this.cells[i][j]) {
+            this.cells[i][j].rect.classList.add('hover-dep');
+        }
+    }
+
+    /**
+     * Trwale zaznacza pare (i,j) — przy kliknieciu w luk.
+     */
+    selectPair(i, j) {
+        this.clearPairSelection();
+        if (this.cells[i] && this.cells[i][j]) {
             this.cells[i][j].rect.classList.add('highlight-trace');
+        }
+    }
+
+    clearPairSelection() {
+        for (let i = 0; i < this.n; i++) {
+            for (let j = 0; j < this.n; j++) {
+                this.cells[i][j].rect.classList.remove('highlight-trace');
+            }
         }
     }
 

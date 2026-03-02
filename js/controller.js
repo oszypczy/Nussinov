@@ -259,6 +259,13 @@ window.Controller = class Controller {
             this.matrixView.highlightPair(i, j);
         };
 
+        this.arcView.onArcClick = (i, j, selected) => {
+            this.matrixView.clearPairSelection();
+            if (selected) {
+                this.matrixView.selectPair(i, j);
+            }
+        };
+
         // show results
         this.inputScreen.classList.add('hidden');
         this.resultsScreen.classList.remove('hidden');
