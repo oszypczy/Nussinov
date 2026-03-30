@@ -57,6 +57,7 @@ window.Controller = class Controller {
 
         this._initEvents();
         this._populateExamples();
+        this._loadDefaultExample();
     }
 
     // ---------- Init ----------
@@ -135,6 +136,11 @@ window.Controller = class Controller {
         this.overlay.addEventListener('click', (e) => {
             if (e.target === this.overlay) this.overlay.classList.add('hidden');
         });
+    }
+
+    _loadDefaultExample() {
+        const firstChip = this.exampleChips.querySelector('.chip');
+        if (firstChip) firstChip.click();
     }
 
     _populateExamples() {
