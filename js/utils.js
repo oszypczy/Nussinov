@@ -1,4 +1,3 @@
-// utils.js — walidacja sekwencji RNA, pary zasad, helpery
 'use strict';
 
 window.RNAUtils = (() => {
@@ -6,21 +5,13 @@ window.RNAUtils = (() => {
     const STANDARD_PAIRS = new Set(['AU', 'UA', 'GC', 'CG']);
     const WOBBLE_PAIRS = new Set(['GU', 'UG']);
 
-    /**
-     * Parsuje surowy tekst w wybranym formacie.
-     * format: 'plain' | 'fasta'
-     * Zwraca { cleaned, warnings[] }
-     */
     function sanitize(raw, format = 'plain') {
         const warnings = [];
-
         let s = raw;
 
-        // FASTA — usun linie naglowkowe (>...)
         if (format === 'fasta') {
             const lines = s.split(/\r?\n/);
-            const seqLines = lines.filter(l => !l.startsWith('>'));
-            s = seqLines.join('');
+            s = lines.filter(l => !l.startsWith('>')).join('');
         }
 
         s = s.toUpperCase();
@@ -30,16 +21,11 @@ window.RNAUtils = (() => {
             s = s.replace(/T/g, 'U');
         }
 
-        // usun biale znaki i cyfry (FASTA)
         s = s.replace(/[\s\d]/g, '');
 
         return { cleaned: s, warnings };
     }
 
-    /**
-     * Waliduje oczyszczona sekwencje.
-     * Zwraca { valid, errors[], warnings[] }
-     */
     function validate(sequence) {
         const errors = [];
         const warnings = [];
@@ -62,9 +48,6 @@ window.RNAUtils = (() => {
         return { valid: errors.length === 0, errors, warnings };
     }
 
-    /**
-     * Sprawdza czy nukleotydy na pozycjach i, j moga tworzyc pare.
-     */
     function canPair(a, b, allowWobble) {
         const pair = a + b;
         if (STANDARD_PAIRS.has(pair)) return true;
@@ -72,9 +55,6 @@ window.RNAUtils = (() => {
         return false;
     }
 
-    /**
-     * Zwraca typ pary (do kolorowania) lub null.
-     */
     function pairType(a, b) {
         const pair = a + b;
         if (pair === 'AU' || pair === 'UA') return 'AU';
@@ -83,9 +63,6 @@ window.RNAUtils = (() => {
         return null;
     }
 
-    /**
-     * Przykladowe sekwencje do demonstracji.
-     */
     const EXAMPLES = [
         { name: 'Prosta', sequence: 'GGGAAAUCC' },
         { name: 'Średnia', sequence: 'GGUCCACGUCCAG' },

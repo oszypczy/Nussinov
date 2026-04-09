@@ -8,13 +8,13 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=DM+Mono:wght@400;500&family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="css/style.css">
+    
+    <script src="https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.min.js"></script>
 </head>
 <body>
 
-<!-- Grain overlay for texture -->
 <div class="grain" aria-hidden="true"></div>
 
-<!-- ===== Ekran poczatkowy ===== -->
 <section id="input-screen">
     <div class="input-card">
         <div class="card-glow" aria-hidden="true"></div>
@@ -25,7 +25,7 @@
             <p class="subtitle">Predykcja struktury drugorzędowej RNA</p>
         </div>
 
-        <!-- Format + sekwencja -->
+        
         <div class="field">
             <div class="field-header">
                 <label for="seq-input">Sekwencja</label>
@@ -42,13 +42,13 @@
             </div>
         </div>
 
-        <!-- Przyklady -->
+        
         <div class="field">
             <label>Przykłady</label>
             <div id="example-chips" class="chip-row"></div>
         </div>
 
-        <!-- Parametry -->
+        
         <div class="params-row">
             <div class="field">
                 <label for="loop-slider">Min. odległość pętli: <strong id="loop-value">1</strong></label>
@@ -63,7 +63,7 @@
             </div>
         </div>
 
-        <!-- Wybor trybu + przycisk -->
+        
         <div class="action-row">
             <div class="mode-selector">
                 <button class="mode-btn active" data-mode="educational">
@@ -89,10 +89,9 @@
     </div>
 </section>
 
-<!-- ===== Sekcja wynikow (ukryta domyslnie) ===== -->
 <section id="results-screen" class="hidden">
 
-    <!-- Pasek info + powrot -->
+    
     <div id="results-header">
         <button id="btn-back" title="Powrót do ekranu startowego">
             <svg width="14" height="14" viewBox="0 0 16 16" fill="none"><path d="M10 12L6 8l4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
@@ -101,7 +100,7 @@
         <span id="result-seq-label" class="result-seq-label"></span>
     </div>
 
-    <!-- Kontrolki edukacyjne (ukryte w trybie instant) -->
+    
     <div id="edu-controls" class="hidden">
         <div class="edu-controls-inner">
             <div class="edu-buttons">
@@ -139,7 +138,7 @@
         <div id="step-description" class="step-desc"></div>
     </div>
 
-    <!-- Wizualizacje -->
+    
     <div id="viz-panel">
         <section id="matrix-container" class="viz-box">
             <h2>Macierz DP</h2>
@@ -148,17 +147,53 @@
             </div>
         </section>
 
-        <section id="arc-container" class="viz-box">
-            <h2>Diagram łukowy</h2>
-            <div id="arc-svg-wrap">
-                <svg id="arc-svg"></svg>
+        <section id="right-panel" class="viz-box">
+            
+            <div class="tab-bar">
+                <button class="tab-btn active" data-tab="arc">Diagram łukowy</button>
+                <button class="tab-btn" data-tab="tree">Drzewo rekurencji</button>
+                <button class="tab-btn" data-tab="helix">Helisa 3D</button>
             </div>
-            <div id="dot-bracket"></div>
+
+            
+            <div id="tab-arc" class="tab-panel">
+                <div id="arc-svg-wrap">
+                    <svg id="arc-svg"></svg>
+                </div>
+                <div id="dot-bracket"></div>
+            </div>
+
+            
+            <div id="tab-tree" class="tab-panel hidden">
+                <div id="tree-container"></div>
+                <div class="viz-legend">
+                    <span class="leg-item leg-skip_i">Pomiń i</span>
+                    <span class="leg-item leg-skip_j">Pomiń j</span>
+                    <span class="leg-item leg-pair">Para i–j</span>
+                    <span class="leg-item leg-bifurcation">Bifurkacja</span>
+                    <span class="leg-item leg-base">Stan bazowy</span>
+                </div>
+            </div>
+
+            
+            <div id="tab-helix" class="tab-panel hidden">
+                <div id="helix-canvas-wrap"></div>
+                <div class="viz-legend">
+                    <span class="leg-item" style="background:rgba(34,211,238,.15);color:#22d3ee">A</span>
+                    <span class="leg-item" style="background:rgba(251,113,133,.15);color:#fb7185">U</span>
+                    <span class="leg-item" style="background:rgba(74,222,128,.15);color:#4ade80">G</span>
+                    <span class="leg-item" style="background:rgba(251,191,36,.15);color:#fbbf24">C</span>
+                    <span class="leg-sep">·</span>
+                    <span class="leg-item" style="background:rgba(56,189,248,.15);color:#38bdf8">A–U</span>
+                    <span class="leg-item" style="background:rgba(248,113,113,.15);color:#f87171">G–C</span>
+                    <span class="leg-item" style="background:rgba(52,211,153,.15);color:#34d399">G–U</span>
+                    <span class="helix-hint">Przeciągnij myszą · Scroll = zoom · Dwuklik = auto-obrót</span>
+                </div>
+            </div>
         </section>
     </div>
 </section>
 
-<!-- ===== Overlay szczegoly komorki ===== -->
 <div id="cell-detail-overlay" class="overlay hidden">
     <div class="overlay-content">
         <button id="overlay-close" class="overlay-close">&times;</button>
@@ -167,11 +202,12 @@
     </div>
 </div>
 
-<!-- Skrypty — kolejnosc wazna -->
 <script src="js/utils.js"></script>
 <script src="js/nussinov.js"></script>
 <script src="js/matrix-view.js"></script>
 <script src="js/arc-view.js"></script>
+<script src="js/tree-view.js"></script>
+<script src="js/helix-view.js"></script>
 <script src="js/controller.js"></script>
 
 </body>

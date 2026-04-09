@@ -1,29 +1,21 @@
-// matrix-view.js — MatrixView: SVG wizualizacja macierzy DP
 'use strict';
 
 window.MatrixView = class MatrixView {
 
-    /**
-     * @param {SVGElement} svg - element <svg id="matrix-svg">
-     */
     constructor(svg) {
         this.svg = svg;
-        this.cells = [];       // [i][j] -> { rect, text }
+        this.cells = [];
         this.n = 0;
         this.cellSize = 36;
         this.headerSize = 28;
-        this.onCellClick = null;   // callback(i, j)
-        this.onCellHover = null;   // callback(i, j | null)
+        this.onCellClick = null;
+        this.onCellHover = null;
     }
 
-    /**
-     * Inicjalizuje siatke macierzy dla sekwencji.
-     */
     init(sequence) {
         const ns = 'http://www.w3.org/2000/svg';
         this.n = sequence.length;
 
-        // bezpieczne czyszczenie SVG
         while (this.svg.firstChild) {
             this.svg.removeChild(this.svg.firstChild);
         }
@@ -38,7 +30,6 @@ window.MatrixView = class MatrixView {
         this._vbH = h;
         this.svg.setAttribute('viewBox', `0 0 ${w} ${h}`);
 
-        // naglowki kolumn (gora)
         for (let j = 0; j < this.n; j++) {
             const txt = document.createElementNS(ns, 'text');
             txt.classList.add('header-text');
@@ -48,7 +39,6 @@ window.MatrixView = class MatrixView {
             this.svg.appendChild(txt);
         }
 
-        // naglowki wierszy (lewa)
         for (let i = 0; i < this.n; i++) {
             const txt = document.createElementNS(ns, 'text');
             txt.classList.add('header-text');
@@ -58,7 +48,6 @@ window.MatrixView = class MatrixView {
             this.svg.appendChild(txt);
         }
 
-        // komorki
         for (let i = 0; i < this.n; i++) {
             this.cells[i] = [];
             for (let j = 0; j < this.n; j++) {
@@ -80,7 +69,6 @@ window.MatrixView = class MatrixView {
 
                 this.cells[i][j] = { rect, text };
 
-                // eventy
                 const ii = i, jj = j;
                 rect.addEventListener('click', () => {
                     if (this.onCellClick) this.onCellClick(ii, jj);
@@ -116,30 +104,22 @@ window.MatrixView = class MatrixView {
         this._ro.observe(wrap);
     }
 
-    /**
-     * Ustawia wartosc komorki i koloruje wg wartosci.
-     */
     setCellValue(i, j, value, maxValue) {
         if (!this.cells[i] || !this.cells[i][j]) return;
         const cell = this.cells[i][j];
         cell.text.textContent = value;
 
-        // gradient ciemny -> luminescencyjny wg wartosci (dark theme)
         if (value > 0 && maxValue > 0) {
             const t = value / maxValue;
-            // od ciemnego indygo do jasnego cyan-indygo
-            const r = Math.round(20 + t * 60);    // 20 -> 80
-            const g = Math.round(27 + t * 85);    // 27 -> 112
-            const b = Math.round(45 + t * 175);   // 45 -> 220
+            const r = Math.round(20 + t * 60);
+            const g = Math.round(27 + t * 85);
+            const b = Math.round(45 + t * 175);
             cell.rect.setAttribute('fill', `rgb(${r},${g},${b})`);
         } else {
             cell.rect.setAttribute('fill', '#141b2d');
         }
     }
 
-    /**
-     * Wypelnia cala macierz wartosciami (tryb instant).
-     */
     fillAll(matrix) {
         const maxVal = Math.max(1, ...matrix.flat());
         for (let i = 0; i < this.n; i++) {
@@ -149,16 +129,12 @@ window.MatrixView = class MatrixView {
         }
     }
 
-    /**
-     * Podswietla komorke i jej zaleznosci.
-     */
     highlightStep(step) {
         this.clearHighlights();
         if (!step) return;
 
         const { i, j, dependencies } = step;
 
-        // zaleznosci
         if (dependencies) {
             for (const [di, dj] of dependencies) {
                 if (this.cells[di] && this.cells[di][dj]) {
@@ -169,15 +145,11 @@ window.MatrixView = class MatrixView {
             }
         }
 
-        // aktualna komorka
         if (this.cells[i] && this.cells[i][j]) {
             this.cells[i][j].rect.classList.add('highlight-current');
         }
     }
 
-    /**
-     * Podswietla zaleznosci przy hover.
-     */
     highlightDeps(deps) {
         this.clearHoverHighlights();
         if (!deps) return;
@@ -188,9 +160,6 @@ window.MatrixView = class MatrixView {
         }
     }
 
-    /**
-     * Podswietla pare (i,j) w macierzy — tymczasowo przy hover na luk.
-     */
     highlightPair(i, j) {
         this.clearHoverHighlights();
         if (this.cells[i] && this.cells[i][j]) {
@@ -198,9 +167,6 @@ window.MatrixView = class MatrixView {
         }
     }
 
-    /**
-     * Trwale zaznacza pare (i,j) — przy kliknieciu w luk.
-     */
     selectPair(i, j) {
         this.clearPairSelection();
         if (this.cells[i] && this.cells[i][j]) {
@@ -233,9 +199,6 @@ window.MatrixView = class MatrixView {
         }
     }
 
-    /**
-     * Podswietla sciezke traceback.
-     */
     highlightTracePath(traceSteps) {
         for (const step of traceSteps) {
             if (step.case === 'pair' && this.cells[step.i] && this.cells[step.i][step.j]) {

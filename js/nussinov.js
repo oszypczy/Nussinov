@@ -1,20 +1,13 @@
-// nussinov.js — NussinovModel: algorytm programowania dynamicznego + generowanie krokow
 'use strict';
 
 window.NussinovModel = class NussinovModel {
 
-    /**
-     * @param {string} sequence - oczyszczona sekwencja RNA (wielkie litery)
-     * @param {number} minLoopLength - minimalna odleglosc petli (domyslnie 1)
-     * @param {boolean} allowWobble - czy dozwolone pary wobble G-U
-     */
     constructor(sequence, minLoopLength = 1, allowWobble = false) {
         this.seq = sequence;
         this.n = sequence.length;
         this.k = minLoopLength;
         this.allowWobble = allowWobble;
 
-        // macierz n x n zainicjalizowana zerami
         this.M = Array.from({ length: this.n }, () => new Array(this.n).fill(0));
 
         this.fillSteps = [];
@@ -25,23 +18,18 @@ window.NussinovModel = class NussinovModel {
         this._traceback();
     }
 
-    // ---------- Wypelnianie macierzy ----------
-
     _fill() {
         const { seq, n, k, M, allowWobble } = this;
 
-        // iteracja po dlugosciach podsekwencji (przekatne)
         for (let len = k + 2; len <= n; len++) {
             for (let i = 0; i <= n - len; i++) {
                 const j = i + len - 1;
 
-                // Przypadek 1: i niesparowane
                 let best = M[i + 1][j];
                 let bestCase = 'skip_i';
                 let bestDeps = [[i + 1, j]];
                 let bestDesc = `s[${i}]=${seq[i]} niesparowane → M[${i + 1}][${j}] = ${M[i + 1][j]}`;
 
-                // Przypadek 2: j niesparowane
                 if (M[i][j - 1] > best) {
                     best = M[i][j - 1];
                     bestCase = 'skip_j';
@@ -49,21 +37,17 @@ window.NussinovModel = class NussinovModel {
                     bestDesc = `s[${j}]=${seq[j]} niesparowane → M[${i}][${j - 1}] = ${M[i][j - 1]}`;
                 }
 
-                // Przypadek 3: i sparowane z j
                 const delta = RNAUtils.canPair(seq[i], seq[j], allowWobble) ? 1 : 0;
                 const pairVal = M[i + 1][j - 1] + delta;
                 if (pairVal > best) {
                     best = pairVal;
                     bestCase = delta ? 'pair' : 'skip_i';
                     bestDeps = [[i + 1, j - 1]];
-                    if (delta) {
-                        bestDesc = `Para ${seq[i]}–${seq[j]}: M[${i + 1}][${j - 1}] + 1 = ${pairVal}`;
-                    } else {
-                        bestDesc = `M[${i + 1}][${j - 1}] + 0 = ${pairVal} (brak pary)`;
-                    }
+                    bestDesc = delta
+                        ? `Para ${seq[i]}–${seq[j]}: M[${i + 1}][${j - 1}] + 1 = ${pairVal}`
+                        : `M[${i + 1}][${j - 1}] + 0 = ${pairVal} (brak pary)`;
                 }
 
-                // Przypadek 4: bifurkacja
                 for (let t = i + 1; t < j; t++) {
                     const bifVal = M[i][t] + M[t + 1][j];
                     if (bifVal > best) {
@@ -88,8 +72,6 @@ window.NussinovModel = class NussinovModel {
         }
     }
 
-    // ---------- Traceback ----------
-
     _traceback() {
         if (this.n === 0) return;
         this._tracebackRecur(0, this.n - 1);
@@ -100,7 +82,6 @@ window.NussinovModel = class NussinovModel {
 
         if (j - i <= k) return;
 
-        // i niesparowane
         if (M[i][j] === M[i + 1][j]) {
             this.tracebackSteps.push({
                 type: 'traceback',
@@ -111,9 +92,7 @@ window.NussinovModel = class NussinovModel {
                 description: `M[${i}][${j}]=${M[i][j]} == M[${i + 1}][${j}] → s[${i}]=${seq[i]} niesparowane`,
             });
             this._tracebackRecur(i + 1, j);
-        }
-        // j niesparowane
-        else if (M[i][j] === M[i][j - 1]) {
+        } else if (M[i][j] === M[i][j - 1]) {
             this.tracebackSteps.push({
                 type: 'traceback',
                 i, j,
@@ -123,10 +102,8 @@ window.NussinovModel = class NussinovModel {
                 description: `M[${i}][${j}]=${M[i][j]} == M[${i}][${j - 1}] → s[${j}]=${seq[j]} niesparowane`,
             });
             this._tracebackRecur(i, j - 1);
-        }
-        // para i-j
-        else if (RNAUtils.canPair(seq[i], seq[j], allowWobble) &&
-                 M[i][j] === M[i + 1][j - 1] + 1) {
+        } else if (RNAUtils.canPair(seq[i], seq[j], allowWobble) &&
+                   M[i][j] === M[i + 1][j - 1] + 1) {
             this.tracebackSteps.push({
                 type: 'traceback',
                 i, j,
@@ -137,9 +114,7 @@ window.NussinovModel = class NussinovModel {
             });
             this.pairs.push([i, j]);
             this._tracebackRecur(i + 1, j - 1);
-        }
-        // bifurkacja
-        else {
+        } else {
             for (let t = i + 1; t < j; t++) {
                 if (M[i][j] === M[i][t] + M[t + 1][j]) {
                     this.tracebackSteps.push({
@@ -158,8 +133,6 @@ window.NussinovModel = class NussinovModel {
         }
     }
 
-    // ---------- API ----------
-
     generateFillSteps() {
         return this.fillSteps;
     }
@@ -176,9 +149,40 @@ window.NussinovModel = class NussinovModel {
         return this.pairs;
     }
 
-    /**
-     * Zwraca notacje kropkowa (dot-bracket) struktury.
-     */
+    buildRecursionTree() {
+        if (this.n === 0) return null;
+        return this._buildTreeNode(0, this.n - 1);
+    }
+
+    _buildTreeNode(i, j) {
+        const { seq, k, M, allowWobble } = this;
+        const value = (i >= 0 && j < this.n && i <= j) ? M[i][j] : 0;
+        const node = { i, j, value, case: 'base', children: [] };
+
+        if (j - i <= k) return node;
+
+        if (M[i][j] === M[i + 1][j]) {
+            node.case = 'skip_i';
+            node.children = [this._buildTreeNode(i + 1, j)];
+        } else if (M[i][j] === M[i][j - 1]) {
+            node.case = 'skip_j';
+            node.children = [this._buildTreeNode(i, j - 1)];
+        } else if (RNAUtils.canPair(seq[i], seq[j], allowWobble) && M[i][j] === M[i + 1][j - 1] + 1) {
+            node.case = 'pair';
+            node.children = [this._buildTreeNode(i + 1, j - 1)];
+        } else {
+            for (let t = i + 1; t < j; t++) {
+                if (M[i][j] === M[i][t] + M[t + 1][j]) {
+                    node.case = 'bifurcation';
+                    node.bifT = t;
+                    node.children = [this._buildTreeNode(i, t), this._buildTreeNode(t + 1, j)];
+                    break;
+                }
+            }
+        }
+        return node;
+    }
+
     getDotBracket() {
         const arr = new Array(this.n).fill('.');
         for (const [i, j] of this.pairs) {
