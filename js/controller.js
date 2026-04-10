@@ -34,6 +34,20 @@ window.Controller = class Controller {
 
         this.dotBracketEl = document.getElementById('dot-bracket');
 
+        this.statPairs     = document.getElementById('stat-pairs');
+        this.statPairedPct = document.getElementById('stat-paired-pct');
+        this.statGc        = document.getElementById('stat-gc');
+        this.countAu       = document.getElementById('count-au');
+        this.countGc       = document.getElementById('count-gc');
+        this.countGu       = document.getElementById('count-gu');
+        this.barAu         = document.getElementById('bar-au');
+        this.barGc         = document.getElementById('bar-gc');
+        this.barGu         = document.getElementById('bar-gu');
+
+        this.algoOverlay      = document.getElementById('algo-info-overlay');
+        this.algoOverlayClose = document.getElementById('algo-info-close');
+        this.btnInfo          = document.getElementById('btn-info');
+
         this.matrixView = new MatrixView(document.getElementById('matrix-svg'));
         this.arcView    = new ArcView(document.getElementById('arc-svg'));
         this.treeView   = new TreeView(document.getElementById('tree-container'));
@@ -118,6 +132,23 @@ window.Controller = class Controller {
         });
         this.overlay.addEventListener('click', (e) => {
             if (e.target === this.overlay) this.overlay.classList.add('hidden');
+        });
+
+        this.btnInfo.addEventListener('click', () => {
+            this.algoOverlay.classList.remove('hidden');
+        });
+        this.algoOverlayClose.addEventListener('click', () => {
+            this.algoOverlay.classList.add('hidden');
+        });
+        this.algoOverlay.addEventListener('click', (e) => {
+            if (e.target === this.algoOverlay) this.algoOverlay.classList.add('hidden');
+        });
+
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') {
+                this.overlay.classList.add('hidden');
+                this.algoOverlay.classList.add('hidden');
+            }
         });
     }
 
@@ -292,6 +323,7 @@ window.Controller = class Controller {
         this.resultsScreen.classList.remove('hidden');
         this.resultSeqLabel.textContent = `${cleaned}  (${cleaned.length} nt, ${this.model.getPairs().length} par)`;
         this.dotBracketEl.textContent = this.model.getDotBracket();
+        this._updateStats();
 
         if (this.mode === 'instant') {
             this._runInstant();
@@ -468,6 +500,39 @@ window.Controller = class Controller {
             case 'bifurcation':return 'Bifurkacja';
             default:           return c;
         }
+    }
+
+    _updateStats() {
+        const pairs = this.model.getPairs();
+        const seq   = this.model.seq;
+        const n     = seq.length;
+
+        this.statPairs.textContent = pairs.length;
+
+        const pairedPct = n > 0 ? (2 * pairs.length) / n * 100 : 0;
+        this.statPairedPct.textContent = pairedPct.toFixed(1) + '%';
+
+        let gcCount = 0;
+        for (const ch of seq) {
+            if (ch === 'G' || ch === 'C') gcCount++;
+        }
+        this.statGc.textContent = (n > 0 ? (gcCount / n) * 100 : 0).toFixed(1) + '%';
+
+        const dist = { AU: 0, GC: 0, GU: 0 };
+        for (const [i, j] of pairs) {
+            const pt = RNAUtils.pairType(seq[i], seq[j]);
+            if (pt && dist.hasOwnProperty(pt)) dist[pt]++;
+        }
+
+        const maxCount = Math.max(1, dist.AU, dist.GC, dist.GU);
+
+        this.countAu.textContent = dist.AU;
+        this.countGc.textContent = dist.GC;
+        this.countGu.textContent = dist.GU;
+
+        this.barAu.style.width = (dist.AU / maxCount * 100) + '%';
+        this.barGc.style.width = (dist.GC / maxCount * 100) + '%';
+        this.barGu.style.width = (dist.GU / maxCount * 100) + '%';
     }
 
     _goBack() {

@@ -98,6 +98,13 @@
             Nowa sekwencja
         </button>
         <span id="result-seq-label" class="result-seq-label"></span>
+        <button id="btn-info" class="btn-info" title="O algorytmie">
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                <circle cx="8" cy="8" r="6.5" stroke="currentColor" stroke-width="1.2"/>
+                <path d="M8 7v4M8 5.5v.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+            </svg>
+            O algorytmie
+        </button>
     </div>
 
     
@@ -153,6 +160,7 @@
                 <button class="tab-btn active" data-tab="arc">Diagram łukowy</button>
                 <button class="tab-btn" data-tab="tree">Drzewo rekurencji</button>
                 <button class="tab-btn" data-tab="helix">Helisa 3D</button>
+                <button class="tab-btn" data-tab="stats">Statystyki</button>
             </div>
 
             
@@ -190,6 +198,44 @@
                     <span class="helix-hint">Przeciągnij myszą · Scroll = zoom · Dwuklik = auto-obrót</span>
                 </div>
             </div>
+
+
+            <div id="tab-stats" class="tab-panel hidden">
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <span class="stat-label">Liczba par zasad</span>
+                        <span class="stat-value" id="stat-pairs">&mdash;</span>
+                    </div>
+                    <div class="stat-card">
+                        <span class="stat-label">Sparowane nukleotydy</span>
+                        <span class="stat-value" id="stat-paired-pct">&mdash;</span>
+                    </div>
+                    <div class="stat-card">
+                        <span class="stat-label">Zawartość GC</span>
+                        <span class="stat-value" id="stat-gc">&mdash;</span>
+                    </div>
+                    <div class="stat-card stat-card-wide">
+                        <span class="stat-label">Rozkład typów par</span>
+                        <div class="pair-dist" id="stat-pair-dist">
+                            <div class="pair-dist-row">
+                                <span class="pair-type pair-type-au">A–U</span>
+                                <div class="pair-bar-track"><div class="pair-bar" id="bar-au"></div></div>
+                                <span class="pair-count" id="count-au">0</span>
+                            </div>
+                            <div class="pair-dist-row">
+                                <span class="pair-type pair-type-gc">G–C</span>
+                                <div class="pair-bar-track"><div class="pair-bar" id="bar-gc"></div></div>
+                                <span class="pair-count" id="count-gc">0</span>
+                            </div>
+                            <div class="pair-dist-row">
+                                <span class="pair-type pair-type-gu">G–U</span>
+                                <div class="pair-bar-track"><div class="pair-bar" id="bar-gu"></div></div>
+                                <span class="pair-count" id="count-gu">0</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </section>
     </div>
 </section>
@@ -199,6 +245,75 @@
         <button id="overlay-close" class="overlay-close">&times;</button>
         <h3>Szczegóły komórki</h3>
         <div id="cell-detail-body"></div>
+    </div>
+</div>
+
+<div id="algo-info-overlay" class="overlay hidden">
+    <div class="overlay-content overlay-content-wide">
+        <button id="algo-info-close" class="overlay-close">&times;</button>
+        <h3>O algorytmie Nussinov</h3>
+        <div class="algo-info-body">
+
+            <section class="algo-section">
+                <h4>Kontekst biologiczny</h4>
+                <p>Cząsteczka RNA występuje najczęściej jako pojedyncza nić, która może zaginać się
+                   i tworzyć pary zasad sama ze sobą. Komplementarne pary zasad to: A–U, G–C
+                   oraz słabsza para wobble G–U. Prowadzi to do powstawania struktur drugorzędowych
+                   takich jak hairpin loops, internal loops czy bulges.</p>
+                <p>Algorytm Nussinov (1978) znajduje maksymalną liczbę par zasad w sekwencji RNA,
+                   zakładając brak pseudowęzłów. Jest to jeden z fundamentalnych algorytmów
+                   programowania dynamicznego w bioinformatyce.</p>
+            </section>
+
+            <section class="algo-section">
+                <h4>Relacja rekurencyjna</h4>
+                <div class="algo-formula">
+                    M[i][j] = max {<br>
+                    &nbsp;&nbsp;M[i+1][j],<span class="algo-comment">// i niesparowane</span><br>
+                    &nbsp;&nbsp;M[i][j−1],<span class="algo-comment">// j niesparowane</span><br>
+                    &nbsp;&nbsp;M[i+1][j−1] + δ(i,j),<span class="algo-comment">// parowanie i–j</span><br>
+                    &nbsp;&nbsp;max<sub>i&lt;t&lt;j</sub>( M[i][t] + M[t+1][j] )<span class="algo-comment">// bifurkacja</span><br>
+                    }
+                </div>
+                <p class="algo-note">gdzie δ(i,j) = 1 jeśli s<sub>i</sub> i s<sub>j</sub>
+                   tworzą dozwoloną parę zasad, 0 w przeciwnym przypadku.
+                   Warunek: j − i &gt; k (minimalna długość pętli).</p>
+            </section>
+
+            <section class="algo-section">
+                <h4>Pseudokod — Traceback</h4>
+                <pre class="algo-code">TRACEBACK(i, j):
+  jeśli j − i ≤ k: return
+  jeśli M[i][j] == M[i+1][j]:
+      TRACEBACK(i+1, j)
+  w.p.p. jeśli M[i][j] == M[i][j−1]:
+      TRACEBACK(i, j−1)
+  w.p.p. jeśli δ(i,j) = 1 i M[i][j] == M[i+1][j−1] + 1:
+      zapisz parę (i, j)
+      TRACEBACK(i+1, j−1)
+  w.p.p.:
+      znajdź t: M[i][j] == M[i][t] + M[t+1][j]
+      TRACEBACK(i, t)
+      TRACEBACK(t+1, j)</pre>
+            </section>
+
+            <section class="algo-section">
+                <h4>Złożoność</h4>
+                <div class="complexity-grid">
+                    <div class="complexity-item">
+                        <span class="complexity-label">Czasowa</span>
+                        <span class="complexity-value">O(n³)</span>
+                    </div>
+                    <div class="complexity-item">
+                        <span class="complexity-label">Pamięciowa</span>
+                        <span class="complexity-value">O(n²)</span>
+                    </div>
+                </div>
+                <p class="algo-note">Trzy zagnieżdżone pętle przy wypełnianiu macierzy (długość podsekwencji,
+                   pozycja startowa, punkt bifurkacji) dają złożoność sześcienną. Macierz n×n
+                   wymaga pamięci kwadratowej.</p>
+            </section>
+        </div>
     </div>
 </div>
 

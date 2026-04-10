@@ -941,6 +941,226 @@ input[type="range"]::-moz-range-thumb {
     white-space: nowrap;
 }
 
+/* --- Statistics tab --- */
+
+.stats-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: .75rem;
+    padding: .5rem .25rem;
+    flex: 1;
+    align-content: start;
+}
+
+.stat-card {
+    background: var(--bg-surface);
+    border: 1px solid var(--border);
+    border-radius: var(--r-md);
+    padding: .9rem 1rem;
+    display: flex;
+    flex-direction: column;
+    gap: .3rem;
+}
+
+.stat-card-wide {
+    grid-column: 1 / -1;
+}
+
+.stat-label {
+    font-size: .68rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: .1em;
+    color: var(--text-dim);
+}
+
+.stat-value {
+    font-family: var(--font-mono);
+    font-size: 1.5rem;
+    font-weight: 500;
+    color: var(--accent);
+}
+
+.pair-dist {
+    display: flex;
+    flex-direction: column;
+    gap: .5rem;
+    margin-top: .35rem;
+}
+
+.pair-dist-row {
+    display: flex;
+    align-items: center;
+    gap: .6rem;
+}
+
+.pair-type {
+    font-family: var(--font-mono);
+    font-size: .78rem;
+    font-weight: 500;
+    min-width: 2.5rem;
+}
+
+.pair-type-au { color: var(--pair-au); }
+.pair-type-gc { color: var(--pair-gc); }
+.pair-type-gu { color: var(--pair-gu); }
+
+.pair-bar-track {
+    flex: 1;
+    height: 8px;
+    background: var(--bg-raised);
+    border-radius: 4px;
+    overflow: hidden;
+}
+
+.pair-bar {
+    height: 100%;
+    border-radius: 4px;
+    transition: width .4s ease;
+    width: 0;
+}
+
+#bar-au { background: var(--pair-au); }
+#bar-gc { background: var(--pair-gc); }
+#bar-gu { background: var(--pair-gu); }
+
+.pair-count {
+    font-family: var(--font-mono);
+    font-size: .82rem;
+    font-weight: 500;
+    color: var(--text-muted);
+    min-width: 1.5rem;
+    text-align: right;
+}
+
+/* --- Algorithm info modal --- */
+
+.overlay-content-wide {
+    max-width: 640px;
+    max-height: 85vh;
+    overflow-y: auto;
+}
+
+.btn-info {
+    display: flex;
+    align-items: center;
+    gap: .35rem;
+    padding: .35rem .75rem;
+    border: 1px solid var(--border);
+    border-radius: var(--r);
+    background: transparent;
+    font-family: var(--font-body);
+    font-size: .8rem;
+    color: var(--text-muted);
+    cursor: pointer;
+    transition: all .15s;
+    margin-left: auto;
+}
+
+.btn-info:hover {
+    border-color: var(--accent-dim);
+    color: var(--text);
+    background: var(--bg-surface);
+}
+
+.algo-info-body {
+    font-size: .88rem;
+    line-height: 1.65;
+    color: var(--text-muted);
+}
+
+.algo-section {
+    margin-bottom: 1.25rem;
+}
+
+.algo-section:last-child {
+    margin-bottom: 0;
+}
+
+.algo-section h4 {
+    font-family: var(--font-body);
+    font-weight: 600;
+    font-size: .82rem;
+    text-transform: uppercase;
+    letter-spacing: .06em;
+    color: var(--accent);
+    margin-bottom: .5rem;
+}
+
+.algo-section p {
+    margin-bottom: .5rem;
+}
+
+.algo-formula {
+    font-family: var(--font-mono);
+    font-size: .82rem;
+    background: var(--bg-surface);
+    border: 1px solid var(--border);
+    border-radius: var(--r);
+    padding: .75rem 1rem;
+    line-height: 1.8;
+    color: var(--text);
+}
+
+.algo-comment {
+    color: var(--text-dim);
+    margin-left: 1rem;
+    font-size: .75rem;
+}
+
+.algo-note {
+    font-size: .78rem;
+    color: var(--text-dim);
+    font-style: italic;
+    margin-top: .35rem;
+}
+
+.algo-code {
+    font-family: var(--font-mono);
+    font-size: .78rem;
+    background: var(--bg-surface);
+    border: 1px solid var(--border);
+    border-radius: var(--r);
+    padding: .75rem 1rem;
+    line-height: 1.7;
+    color: var(--text);
+    overflow-x: auto;
+    white-space: pre;
+}
+
+.complexity-grid {
+    display: flex;
+    gap: .75rem;
+    margin-bottom: .5rem;
+}
+
+.complexity-item {
+    flex: 1;
+    background: var(--bg-surface);
+    border: 1px solid var(--border);
+    border-radius: var(--r);
+    padding: .6rem .8rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: .2rem;
+}
+
+.complexity-label {
+    font-size: .68rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: .08em;
+    color: var(--text-dim);
+}
+
+.complexity-value {
+    font-family: var(--font-mono);
+    font-size: 1.2rem;
+    font-weight: 500;
+    color: var(--accent);
+}
+
 ::-webkit-scrollbar { width: 6px; height: 6px; }
 ::-webkit-scrollbar-track { background: transparent; }
 ::-webkit-scrollbar-thumb { background: var(--bg-raised); border-radius: 3px; }
