@@ -275,8 +275,9 @@
                     &nbsp;&nbsp;max<sub>i&lt;t&lt;j</sub>( M[i][t] + M[t+1][j] )<span class="algo-comment">// bifurkacja</span><br>
                     }
                 </div>
-                <p class="algo-note">gdzie δ(i,j) = 1 jeśli s<sub>i</sub> i s<sub>j</sub>
-                   tworzą dozwoloną parę zasad, 0 w przeciwnym przypadku.
+                <p class="algo-note">gdzie δ(i,j) to ocena pary zasad:
+                   <strong>C–G = +3</strong>, <strong>A–U = +2</strong>, <strong>G–U = +1</strong>
+                   (G–U tylko gdy włączone parowanie wobble), 0 w przeciwnym przypadku.
                    Warunek: j − i &gt; k (minimalna długość pętli).</p>
             </section>
 
@@ -288,7 +289,7 @@
       TRACEBACK(i+1, j)
   w.p.p. jeśli M[i][j] == M[i][j−1]:
       TRACEBACK(i, j−1)
-  w.p.p. jeśli δ(i,j) = 1 i M[i][j] == M[i+1][j−1] + 1:
+  w.p.p. jeśli δ(i,j) &gt; 0 i M[i][j] == M[i+1][j−1] + δ(i,j):
       zapisz parę (i, j)
       TRACEBACK(i+1, j−1)
   w.p.p.:

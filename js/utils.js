@@ -63,11 +63,19 @@ window.RNAUtils = (() => {
         return null;
     }
 
+    function pairScore(a, b, allowWobble) {
+        const t = pairType(a, b);
+        if (t === 'GC') return 3;
+        if (t === 'AU') return 2;
+        if (t === 'GU') return allowWobble ? 1 : 0;
+        return 0;
+    }
+
     const EXAMPLES = [
         { name: 'Prosta', sequence: 'GGGAAAUCC' },
         { name: 'Średnia', sequence: 'GGUCCACGUCCAG' },
         { name: 'Dłuższa', sequence: 'ACGUAGCUAGCUA' },
     ];
 
-    return { sanitize, validate, canPair, pairType, EXAMPLES };
+    return { sanitize, validate, canPair, pairType, pairScore, EXAMPLES };
 })();

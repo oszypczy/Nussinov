@@ -37,14 +37,14 @@ window.NussinovModel = class NussinovModel {
                     bestDesc = `s[${j}]=${seq[j]} niesparowane → M[${i}][${j - 1}] = ${M[i][j - 1]}`;
                 }
 
-                const delta = RNAUtils.canPair(seq[i], seq[j], allowWobble) ? 1 : 0;
+                const delta = RNAUtils.pairScore(seq[i], seq[j], allowWobble);
                 const pairVal = M[i + 1][j - 1] + delta;
                 if (pairVal > best) {
                     best = pairVal;
-                    bestCase = delta ? 'pair' : 'skip_i';
+                    bestCase = delta > 0 ? 'pair' : 'skip_i';
                     bestDeps = [[i + 1, j - 1]];
-                    bestDesc = delta
-                        ? `Para ${seq[i]}–${seq[j]}: M[${i + 1}][${j - 1}] + 1 = ${pairVal}`
+                    bestDesc = delta > 0
+                        ? `Para ${seq[i]}–${seq[j]}: M[${i + 1}][${j - 1}] + ${delta} = ${pairVal}`
                         : `M[${i + 1}][${j - 1}] + 0 = ${pairVal} (brak pary)`;
                 }
 
@@ -103,14 +103,15 @@ window.NussinovModel = class NussinovModel {
             });
             this._tracebackRecur(i, j - 1);
         } else if (RNAUtils.canPair(seq[i], seq[j], allowWobble) &&
-                   M[i][j] === M[i + 1][j - 1] + 1) {
+                   M[i][j] === M[i + 1][j - 1] + RNAUtils.pairScore(seq[i], seq[j], allowWobble)) {
+            const score = RNAUtils.pairScore(seq[i], seq[j], allowWobble);
             this.tracebackSteps.push({
                 type: 'traceback',
                 i, j,
                 value: M[i][j],
                 case: 'pair',
                 dependencies: [[i + 1, j - 1]],
-                description: `Para ${seq[i]}–${seq[j]} (pozycje ${i}–${j})`,
+                description: `Para ${seq[i]}–${seq[j]} (pozycje ${i}–${j}, +${score})`,
             });
             this.pairs.push([i, j]);
             this._tracebackRecur(i + 1, j - 1);
@@ -167,7 +168,8 @@ window.NussinovModel = class NussinovModel {
         } else if (M[i][j] === M[i][j - 1]) {
             node.case = 'skip_j';
             node.children = [this._buildTreeNode(i, j - 1)];
-        } else if (RNAUtils.canPair(seq[i], seq[j], allowWobble) && M[i][j] === M[i + 1][j - 1] + 1) {
+        } else if (RNAUtils.canPair(seq[i], seq[j], allowWobble) &&
+                   M[i][j] === M[i + 1][j - 1] + RNAUtils.pairScore(seq[i], seq[j], allowWobble)) {
             node.case = 'pair';
             node.children = [this._buildTreeNode(i + 1, j - 1)];
         } else {

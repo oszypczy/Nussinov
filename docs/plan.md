@@ -39,7 +39,12 @@ Rekurencja (dla j - i > k):
         max_{i<t<j}( M[i][t] + M[t+1][j] )   // bifurkacja
     )
 
-gdzie delta(i,j) = 1 jesli s_i i s_j tworza dozwolona pare, 0 w.p.p.
+gdzie delta(i,j) to wazona ocena pary zasad:
+
+    delta(i,j) = 3   gdy para C-G / G-C
+               = 2   gdy para A-U / U-A
+               = 1   gdy para G-U / U-G  (tylko przy allowWobble)
+               = 0   w przeciwnym przypadku
 
 Kolejnosc wypelniania: po przekatnych — od podsekwencji dlugosci k+2 do calej sekwencji.
 
