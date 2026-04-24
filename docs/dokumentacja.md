@@ -96,20 +96,6 @@ Nussinov/
     └── dokumentacja.md
 ```
 
-### 4.1. Wzorzec organizacji kodu
-
-Kod zorganizowany jest w wzorcu zbliżonym do MVC:
-
-- **Model** (`nussinov.js`): klasa `NussinovModel` — algorytm, dane, generowanie kroków. Brak zależności od DOM.
-- **Widoki** (`*-view.js`): każdy widok zarządza własnym fragmentem DOM/Canvas, eksponuje metody publiczne i callbacki (`onCellHover`, `onArcClick`, `onNodeHover`, `onNodeClick`).
-- **Kontroler** (`controller.js`): inicjalizuje model i widoki, wiąże callbacki, zarządza stanem animacji.
-
-### 4.2. Brak systemu modułów
-
-Skrypty ładowane są kolejno tagami `<script>` w `index.html`. Klasy i obiekty eksponowane są na obiekt `window` (np. `window.NussinovModel = class { ... }`). Decyzja podyktowana wymaganiem uruchamiania aplikacji bezpośrednio przez otwarcie `index.html` w przeglądarce (protokół `file://`), bez serwera deweloperskiego. ES6 modules są niezgodne z `file://` ze względu na politykę CORS przeglądarek.
-
-Kolejność ładowania: `utils.js` → `nussinov.js` → `matrix-view.js` → `arc-view.js` → `tree-view.js` → `helix-view.js` → `controller.js`.
-
 ---
 
 ## 5. Opis wizualizacji
@@ -181,9 +167,8 @@ W trybie natychmiastowym model obliczany jest jednorazowo i wszystkie widoki ini
 | HTML5 / CSS3 | Struktura i style | Brak zewnętrznych zależności UI |
 | JavaScript ES6+ | Algorytm i widoki | Vanilla JS, bez frameworków |
 | SVG (inline, generowany przez JS) | Macierz DP, diagram łukowy, drzewo rekurencji | Precyzyjne renderowanie wektorowe, pełna kontrola nad DOM, natywna obsługa zdarzeń |
-| Three.js (CDN, UMD) | Helisa 3D (WebGL) | Abstrakcja WebGL; UMD build ładowany przez `<script>` — kompatybilny z `file://` |
+| Three.js | Helisa 3D (WebGL) | Abstrakcja WebGL
 
-Three.js ładowany jest przez CDN (UMD global build). ES modules (`import`) byłyby niezgodne z wybraną architekturą ładowania skryptów bez bundlera. OrbitControls nie jest używany — sterowanie kamerą zaimplementowane ręcznie, co redukuje zależności do minimum.
 
 ---
 
