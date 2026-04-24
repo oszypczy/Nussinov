@@ -3,6 +3,7 @@
 Interaktywne narzędzie edukacyjne do nauki algorytmu Nussinov — klasycznego algorytmu programowania dynamicznego przewidującego strukturę drugorzędową RNA.
 
 **Demo:** [oszypczy.github.io/Nussinov](https://oszypczy.github.io/Nussinov/)
+**Repozytorium:** [github.com/oszypczy/Nussinov](https://github.com/oszypczy/Nussinov)
 
 ## Algorytm
 
